@@ -421,10 +421,15 @@ IFDHCreateChannelByName(DWORD Lun, LPSTR DeviceName)
       memcpy(ifd_connstring + 4, dirname, 3);
       memcpy(ifd_connstring + 8, filename, 3);
       ifdnfc->device = nfc_open(context, ifd_connstring);
-      ifdnfc->connected = (ifdnfc->device) ? true : false;
       ifdnfc->Lun = Lun;
     }
+  } else {
+      ifdnfc->device = nfc_open(context, DeviceName);
+      ifdnfc->Lun = Lun;
   }
+
+  ifdnfc->connected = (ifdnfc->device) ? true : false;
+
   free(vidpid);
   free(hpdriver);
   free(ifn);
@@ -788,6 +793,7 @@ IFDHControl(DWORD Lun, DWORD dwControlCode, PUCHAR TxBuffer, DWORD TxLength,
           if ((TxLength - (1 + sizeof(u16ConnstringLength))) != u16ConnstringLength)
             return IFD_COMMUNICATION_ERROR;
           memcpy(ifd_connstring, TxBuffer + (1 + sizeof(u16ConnstringLength)), u16ConnstringLength);
+          Log1(PCSC_LOG_INFO, "IFDHControl() doing nfc_open(ifd_connstring=%s).", ifd_connstring);
           ifdnfc->device = nfc_open(context, ifd_connstring);
           ifdnfc->connected = (ifdnfc->device) ? true : false;
           ifdnfc->Lun = Lun;
